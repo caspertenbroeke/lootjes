@@ -1,6 +1,7 @@
 /**
  * Lootjes trekken — backend voor Google Apps Script.
- * Plak dit hele bestand in Extensies > Apps Script van je Google Sheet (vervang de inhoud van Code.gs).
+ * Plak dit hele bestand in een Apps Script-project (script.google.com, of Extensies > Apps Script in een Sheet).
+ * Draai één keer de functie setup.
  * Daarna: Implementeren > Nieuwe implementatie > Web-app, uitvoeren als "Ik", toegang "Iedereen".
  *
  * In het tabblad "lootjes" staat per groep één rij. De lootjes zijn versleuteld:
@@ -23,13 +24,24 @@ function doPost(e) {
 }
 
 function sheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('SHEET_ID'), ss = null;
+  if (id) { try { ss = SpreadsheetApp.openById(id); } catch (e) { ss = null; } }
+  if (!ss) { try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { ss = null; } }
+  if (!ss) { ss = SpreadsheetApp.create('Lootjes - gegevens'); }
+  props.setProperty('SHEET_ID', ss.getId());
   var sh = ss.getSheetByName('lootjes');
   if (!sh) {
     sh = ss.insertSheet('lootjes');
     sh.appendRow(['groep', 'gegevens (niet met de hand aanpassen)', 'bijgewerkt']);
   }
   return sh;
+}
+
+// Draai deze functie één keer in de editor: maakt de Sheet aan en vraagt toestemming.
+function setup() {
+  var sh = sheet_();
+  Logger.log('Klaar. Gegevens staan in: ' + sh.getParent().getUrl());
 }
 
 function row_(sh, gid) {
