@@ -39,8 +39,8 @@ h3{margin:0;font-size:1rem}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:420px){.two{grid-template-columns:1fr}}
-input[type=text],input[type=password],input[type=number],input[type=date],input[type=url],select{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0;width:100%}
-input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+input[type=text],input[type=password],input[type=number],input[type=date],input[type=url],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
 .btn{all:unset;box-sizing:border-box;cursor:pointer;font-weight:700;padding:12px 18px;border-radius:10px;background:var(--red);color:var(--red-ink);text-align:center;transition:transform .12s}
 .btn:hover{transform:translateY(-1px)} .btn:active{transform:translateY(1px)}
 .btn:focus-visible,.x:focus-visible,.chipbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -85,6 +85,13 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-o
 .wishes a{color:var(--red);font-weight:600;font-size:.9rem}
 .wishrow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
 @media (max-width:480px){.wishrow{grid-template-columns:1fr auto}.wishrow input[type=url]{grid-column:1/2}}
+.qa{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;width:100%;text-align:left}
+.qa li{background:var(--bg);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;overflow-wrap:anywhere}
+.qa .q{font-weight:600}
+.qa .a{color:var(--ink)}
+.qa .a.none{color:var(--muted);font-style:italic}
+.qa .from{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--gold)}
+textarea{resize:vertical;min-height:70px;font-family:inherit;width:100%}
 .pairs{display:flex;flex-direction:column;gap:6px}
 .pair{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:6px 6px 6px 12px}
 .pair span{flex:1}
@@ -197,7 +204,19 @@ function lootjesRoute(req, env) {
     var mp = g0.people.filter(function (p) { return p.id === req.pid; })[0];
     need(mp, 'Deze link hoort bij niemand in de groep.');
     checkTok(mp, req.th);
-    return { cipher: g0.state === 'drawn' && g0.cipher ? g0.cipher[mp.id] : null, opens: mp.opens || [] };
+    return {
+      cipher: g0.state === 'drawn' && g0.cipher ? g0.cipher[mp.id] : null, opens: mp.opens || [],
+      qs: (mp.qs || []).map(function (q) { return { id: q.id, q: q.q, a: q.a, qt: q.qt, at: q.at }; })
+    };
+  }
+  if (A === 'askList') {
+    // de vrager haalt zijn eigen vragen op met zijn geheime sleutel k (de server bewaart niet wie vraagt)
+    var ap = g0.people.filter(function (p) { return p.id === req.pid; })[0];
+    need(ap, 'Deze link hoort bij niemand in de groep.');
+    checkTok(ap, req.th);
+    var rq = g0.people.filter(function (p) { return p.id === req.rid; })[0];
+    need(rq, 'Deze persoon staat niet (meer) in de groep.');
+    return { qs: (rq.qs || []).filter(function (q) { return q.k && q.k === String(req.k || ''); }).map(function (q) { return { id: q.id, q: q.q, a: q.a, qt: q.qt, at: q.at }; }) };
   }
 
   return env.lock(function () {
@@ -217,6 +236,23 @@ function lootjesRoute(req, env) {
         return { t: clean(w && w.t, 140), u: /^https?:\/\//i.test(u) ? u : '' };
       }).filter(function (w) { return w.t; });
       res = { wish: wp.wish };
+    } else if (A === 'ask') {
+      var asker = person(req.pid); checkTok(asker, req.th);
+      need(g.state === 'drawn', 'Er is nog niet getrokken.');
+      var to = person(req.rid);
+      need(to.id !== asker.id, 'Je kunt jezelf geen vraag stellen.');
+      var k = String(req.k || '').slice(0, 100), q = clean(req.q, 300);
+      need(k && q, 'Typ eerst een vraag.');
+      to.qs = to.qs || [];
+      need(to.qs.filter(function (x) { return x.k === k; }).length < 10, 'Je hebt al 10 vragen gesteld. Wacht eerst op antwoord.');
+      to.qs.push({ id: env.uid(6), k: k, q: q, a: '', qt: env.now(), at: 0 });
+      res = { qs: to.qs.filter(function (x) { return x.k === k; }).map(function (x) { return { id: x.id, q: x.q, a: x.a, qt: x.qt, at: x.at }; }) };
+    } else if (A === 'answer') {
+      var ar = person(req.pid); checkTok(ar, req.th);
+      var qq = (ar.qs || []).filter(function (x) { return x.id === req.qid; })[0];
+      need(qq, 'Deze vraag bestaat niet meer.');
+      qq.a = clean(req.a, 500); qq.at = env.now();
+      res = { qs: ar.qs.map(function (x) { return { id: x.id, q: x.q, a: x.a, qt: x.qt, at: x.at }; }) };
     } else if (A === 'opened') {
       var op = person(req.pid); checkTok(op, req.th);
       need(g.state === 'drawn', 'Er is nog niet getrokken.');
@@ -262,12 +298,12 @@ function lootjesRoute(req, env) {
         var c = req.cipher || {};
         need(g.people.every(function (p) { return c[p.id] && c[p.id].i && c[p.id].c; }), 'De trekking is niet compleet. Probeer het opnieuw.');
         g.cipher = {};
-        g.people.forEach(function (p) { g.cipher[p.id] = blob(c[p.id], 300); p.opens = []; });
+        g.people.forEach(function (p) { g.cipher[p.id] = blob(c[p.id], 300); p.opens = []; p.qs = []; });
         g.state = 'drawn';
         g.drawnAt = env.now();
       } else if (A === 'undraw') {
         g.state = 'open'; g.cipher = null; g.drawnAt = 0;
-        g.people.forEach(function (p) { p.opens = []; });
+        g.people.forEach(function (p) { p.opens = []; p.qs = []; });
       } else {
         throw new Error('Onbekende actie.');
       }
@@ -570,6 +606,7 @@ async function viewPerson({ gid, pid, tok }) {
   app.innerHTML = `<header><p class="fam">${esc(g.name)}</p><h1>Hoi ${esc(me.name)}!</h1></header>${demoBanner()}
     <div class="meta" id="meta"></div>
     <section class="slip" id="stage" aria-live="polite"></section>
+    <section class="slip" id="inbox" hidden></section>
     <section class="slip"><h2>Mijn verlanglijstje</h2><p class="hint">Degene die jou trekt ziet dit lijstje. Je kunt het altijd aanpassen, ook na het trekken.</p>
       <div id="wl" style="display:flex;flex-direction:column;gap:8px"></div>
       <div class="row"><button class="btn ghost small" id="addw">Wens toevoegen</button><span class="grow"></span><button class="btn" id="savew">Opslaan</button></div></section>`;
@@ -595,7 +632,7 @@ async function viewPerson({ gid, pid, tok }) {
     if (!r) return '';
     return `<h3>Verlanglijstje van ${esc(r.name)}</h3>` + (r.wish.length
       ? `<ul class="wishes">${r.wish.map(w => `<li>${esc(w.t)}${w.u ? `<br><a href="${esc(w.u)}" target="_blank" rel="noopener">Bekijk link</a>` : ''}</li>`).join('')}</ul>`
-      : `<p class="hint">${esc(r.name)} heeft nog niets op het verlanglijstje gezet. Kijk later nog eens via deze link.</p>`);
+      : `<p class="hint">${esc(r.name)} heeft nog niets op het verlanglijstje gezet. Stel hieronder anoniem een vraag, of kijk later nog eens via deze link.</p>`);
   }
   function alarmHtml(opens) {
     const others = (opens || []).filter(o => o.d !== dev).sort((a, b) => a.f - b.f);
@@ -648,7 +685,62 @@ async function viewPerson({ gid, pid, tok }) {
     $('#stage').innerHTML = `<div class="stage-center"><span class="lbl">Jij koopt een cadeau voor</span><div class="slot landed">${esc(recName())}</div>
       <p class="hint">Mondje dicht! Budget ${euro(g.budget)}, pakjesavond ${esc(fmtDate(g.date))}.</p>
       <div id="alarm" style="width:100%">${alarmHtml(opens)}</div>
-      <div id="rwish" style="display:flex;flex-direction:column;gap:10px;width:100%;text-align:left">${wishHtml()}</div></div>`;
+      <div id="rwish" style="display:flex;flex-direction:column;gap:10px;width:100%;text-align:left">${wishHtml()}</div>
+      <div id="ask" style="display:flex;flex-direction:column;gap:10px;width:100%;text-align:left"></div></div>`;
+    renderAsk(); loadAsk();
+  }
+
+  /* anoniem vragen aan wie je hebt getrokken */
+  let askQs = [];
+  const askKey = async () => LTC.hash('vraag:' + tok + ':' + g.drawnAt);
+  async function loadAsk() {
+    if (!recipient) return;
+    try { askQs = (await api('askList', { gid, pid, th, rid: recipient.rid, k: await askKey() })).qs; renderAskList(); if (!$('#askq')) renderAsk(); } catch (e) {}
+  }
+  const qaHtml = list => `<ul class="qa">${list.map(q => `<li><span class="q">${esc(q.q)}</span>${q.a ? `<span class="a">${esc(q.a)}</span>` : '<span class="a none">Nog geen antwoord</span>'}</li>`).join('')}</ul>`;
+  function renderAskList() { const el = $('#asklist'); if (el) el.innerHTML = askQs.length ? qaHtml(askQs) : ''; }
+  function renderAsk() {
+    const box = $('#ask'); if (!box || !recipient) return;
+    const r = g.people.find(p => p.id === recipient.rid);
+    if (!r || (r.wish.length && !askQs.length)) { box.innerHTML = ''; return; }
+    box.innerHTML = `<h3>Vraag het anoniem aan ${esc(r.name)}</h3>
+      <p class="hint">${esc(r.name)} ziet alleen dat de vraag van Sinterklaas komt. Het antwoord verschijnt hier.</p>
+      <div id="asklist"></div>
+      <label class="lbl" for="askq">Jouw vraag</label>
+      <textarea id="askq" maxlength="300" placeholder="Bijvoorbeeld: welke maat heb jij? Of: lees je liever een boek of een tijdschrift?"></textarea>
+      <div class="row"><span class="grow"></span><button class="btn" id="asksend">Verstuur anoniem</button></div>`;
+    renderAskList();
+    $('#asksend').onclick = async () => {
+      const q = $('#askq').value.trim(); if (!q) return toast('Typ eerst een vraag.');
+      const b = $('#asksend'); b.disabled = true;
+      try { askQs = (await api('ask', { gid, pid, th, rid: recipient.rid, k: await askKey(), q })).qs; $('#askq').value = ''; renderAskList(); toast('Vraag anoniem verstuurd'); }
+      catch (e) { toast(e.message); }
+      b.disabled = false;
+    };
+  }
+
+  /* vragen die aan mij gesteld zijn */
+  let inboxIds = '';
+  function renderInbox(force) {
+    const box = $('#inbox'), qs = (mine.qs || []);
+    const ids = qs.map(q => q.id + (q.a ? '+' : '')).join(',');
+    if (!force && ids === inboxIds) return;
+    if (!force && box.contains(document.activeElement) && document.activeElement.tagName === 'TEXTAREA') return;
+    inboxIds = ids;
+    if (!qs.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = `<h2>Vragen van Sinterklaas</h2><p class="hint">Degene die jou heeft getrokken wil iets weten. Je ziet niet wie het vraagt.</p>
+      <ul class="qa">${qs.map(q => `<li><span class="from">Sinterklaas vraagt</span><span class="q">${esc(q.q)}</span>
+        <label class="lbl" for="ans_${esc(q.id)}">${q.a ? 'Jouw antwoord' : 'Jouw antwoord (nog niet verstuurd)'}</label>
+        <textarea id="ans_${esc(q.id)}" maxlength="500">${esc(q.a)}</textarea>
+        <div class="row"><span class="grow"></span><button class="btn small" data-ans="${esc(q.id)}">${q.a ? 'Antwoord aanpassen' : 'Antwoord versturen'}</button></div></li>`).join('')}</ul>`;
+    box.querySelectorAll('[data-ans]').forEach(b => b.onclick = async () => {
+      const qid = b.dataset.ans, v = $('#ans_' + qid).value.trim();
+      if (!v) return toast('Typ eerst een antwoord.');
+      b.disabled = true;
+      try { mine.qs = (await api('answer', { gid, pid, th, qid, a: v })).qs; renderInbox(true); toast('Antwoord verstuurd naar Sinterklaas'); }
+      catch (e) { toast(e.message); b.disabled = false; }
+    });
   }
 
   /* verlanglijst bewerken */
@@ -672,13 +764,17 @@ async function viewPerson({ gid, pid, tok }) {
 
   renderMeta();
   renderStage();
+  renderInbox(true);
   every(15000, async () => {
     try {
       g = await api('get', { gid });
       renderMeta();
+      if (g.state === 'drawn') { const m2 = await api('mine', { gid, pid, th }); mine.qs = m2.qs; mine.opens = m2.opens; }
+      else mine.qs = [];
+      renderInbox(false);
       if (spinning) return;
-      if (g.state + ':' + g.drawnAt !== stageKey) { recipient = null; mine.cipher = null; renderStage(); return; }
-      if ($('#rwish') && recipient) $('#rwish').innerHTML = wishHtml();
+      if (g.state + ':' + g.drawnAt !== stageKey) { recipient = null; mine.cipher = null; askQs = []; renderStage(); return; }
+      if ($('#rwish') && recipient) { $('#rwish').innerHTML = wishHtml(); await loadAsk(); }
     } catch (e) {}
   });
 }

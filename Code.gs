@@ -136,7 +136,19 @@ function lootjesRoute(req, env) {
     var mp = g0.people.filter(function (p) { return p.id === req.pid; })[0];
     need(mp, 'Deze link hoort bij niemand in de groep.');
     checkTok(mp, req.th);
-    return { cipher: g0.state === 'drawn' && g0.cipher ? g0.cipher[mp.id] : null, opens: mp.opens || [] };
+    return {
+      cipher: g0.state === 'drawn' && g0.cipher ? g0.cipher[mp.id] : null, opens: mp.opens || [],
+      qs: (mp.qs || []).map(function (q) { return { id: q.id, q: q.q, a: q.a, qt: q.qt, at: q.at }; })
+    };
+  }
+  if (A === 'askList') {
+    // de vrager haalt zijn eigen vragen op met zijn geheime sleutel k (de server bewaart niet wie vraagt)
+    var ap = g0.people.filter(function (p) { return p.id === req.pid; })[0];
+    need(ap, 'Deze link hoort bij niemand in de groep.');
+    checkTok(ap, req.th);
+    var rq = g0.people.filter(function (p) { return p.id === req.rid; })[0];
+    need(rq, 'Deze persoon staat niet (meer) in de groep.');
+    return { qs: (rq.qs || []).filter(function (q) { return q.k && q.k === String(req.k || ''); }).map(function (q) { return { id: q.id, q: q.q, a: q.a, qt: q.qt, at: q.at }; }) };
   }
 
   return env.lock(function () {
@@ -156,6 +168,23 @@ function lootjesRoute(req, env) {
         return { t: clean(w && w.t, 140), u: /^https?:\/\//i.test(u) ? u : '' };
       }).filter(function (w) { return w.t; });
       res = { wish: wp.wish };
+    } else if (A === 'ask') {
+      var asker = person(req.pid); checkTok(asker, req.th);
+      need(g.state === 'drawn', 'Er is nog niet getrokken.');
+      var to = person(req.rid);
+      need(to.id !== asker.id, 'Je kunt jezelf geen vraag stellen.');
+      var k = String(req.k || '').slice(0, 100), q = clean(req.q, 300);
+      need(k && q, 'Typ eerst een vraag.');
+      to.qs = to.qs || [];
+      need(to.qs.filter(function (x) { return x.k === k; }).length < 10, 'Je hebt al 10 vragen gesteld. Wacht eerst op antwoord.');
+      to.qs.push({ id: env.uid(6), k: k, q: q, a: '', qt: env.now(), at: 0 });
+      res = { qs: to.qs.filter(function (x) { return x.k === k; }).map(function (x) { return { id: x.id, q: x.q, a: x.a, qt: x.qt, at: x.at }; }) };
+    } else if (A === 'answer') {
+      var ar = person(req.pid); checkTok(ar, req.th);
+      var qq = (ar.qs || []).filter(function (x) { return x.id === req.qid; })[0];
+      need(qq, 'Deze vraag bestaat niet meer.');
+      qq.a = clean(req.a, 500); qq.at = env.now();
+      res = { qs: ar.qs.map(function (x) { return { id: x.id, q: x.q, a: x.a, qt: x.qt, at: x.at }; }) };
     } else if (A === 'opened') {
       var op = person(req.pid); checkTok(op, req.th);
       need(g.state === 'drawn', 'Er is nog niet getrokken.');
@@ -201,12 +230,12 @@ function lootjesRoute(req, env) {
         var c = req.cipher || {};
         need(g.people.every(function (p) { return c[p.id] && c[p.id].i && c[p.id].c; }), 'De trekking is niet compleet. Probeer het opnieuw.');
         g.cipher = {};
-        g.people.forEach(function (p) { g.cipher[p.id] = blob(c[p.id], 300); p.opens = []; });
+        g.people.forEach(function (p) { g.cipher[p.id] = blob(c[p.id], 300); p.opens = []; p.qs = []; });
         g.state = 'drawn';
         g.drawnAt = env.now();
       } else if (A === 'undraw') {
         g.state = 'open'; g.cipher = null; g.drawnAt = 0;
-        g.people.forEach(function (p) { p.opens = []; });
+        g.people.forEach(function (p) { p.opens = []; p.qs = []; });
       } else {
         throw new Error('Onbekende actie.');
       }
