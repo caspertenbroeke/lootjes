@@ -389,7 +389,10 @@ function stopTimers() { timers.forEach(t => clearInterval(t)); timers = []; }
 function every(ms, fn) { timers.push(setInterval(fn, ms)); }
 function show() {
   stopTimers(); window.scrollTo(0, 0);
-  ({ home: viewHome, admin: viewAdmin, person: viewPerson })[route.v](route).catch(e => fatal(e.message));
+  ({ home: viewHome, admin: viewAdmin, person: viewPerson })[route.v](route).catch(e => {
+    if (route.gid && /bestaat niet/.test(e.message)) ls.set('lt:groups', ls.get('lt:groups', []).filter(x => x.gid !== route.gid));
+    fatal(e.message);
+  });
 }
 function fatal(msg) {
   $('#app').innerHTML = `<header><p class="fam">${esc(FAMILY)}</p><h1>Oeps</h1></header>
@@ -401,13 +404,20 @@ const demoBanner = () => DEMO ? `<div class="demo"><b>Demomodus</b>Alles blijft 
 /* ================= HOME ================= */
 async function viewHome() {
   const groups = ls.get('lt:groups', []);
+  // testgroepen die niet meer bestaan stil opruimen
+  groups.forEach(gr => api('get', { gid: gr.gid }).catch(e => {
+    if (/bestaat niet/.test(e.message)) {
+      ls.set('lt:groups', ls.get('lt:groups', []).filter(x => x.gid !== gr.gid));
+      const b = document.querySelector(`[data-gid="${gr.gid}"]`); if (b) b.remove();
+    }
+  }));
   let names = START_NAMES.slice();
   const app = $('#app');
   app.innerHTML = `<header><p class="fam">${esc(FAMILY)}</p><h1>Lootjes trekken</h1>
     <p class="sub">Met verlanglijstjes, zonder wachtwoorden, en niemand weet wie wie heeft. Ook de organisator niet.</p></header>
     ${demoBanner()}
     ${groups.length ? `<section class="slip"><h2>Jouw groepen</h2><div class="groups">${groups.map((g, i) => `
-      <button class="chipbtn" data-g="${i}"><span>${esc(g.name)}</span><small>${g.admin ? 'organisator' : esc(g.pname || '')}</small></button>`).join('')}</div></section>` : ''}
+      <button class="chipbtn" data-g="${i}" data-gid="${esc(g.gid)}"><span>${esc(g.name)}</span><small>${g.admin ? 'organisator' : esc(g.pname || '')}</small></button>`).join('')}</div></section>` : ''}
     <section class="slip"><h2>Nieuwe groep</h2>
       <div class="field"><label class="lbl" for="gname">Naam van de groep</label><input type="text" id="gname" value="${esc(FAMILY)}"></div>
       <div class="field"><span class="lbl">Deelnemers</span><ul class="list" id="names"></ul>
