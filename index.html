@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<title>Lootjes ten Broeke &amp; ten Voorde</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: één smalle kolom als een stapel papieren lootjes; rood en goud van pakjesavond, de fruitautomaat bij het onthullen als het spannende moment */
+:root{
+  --bg:#f6efe4; --paper:#fffaf2; --ink:#2a1714; --muted:#7a625a; --line:#e6d6c2;
+  --red:#a3182b; --red-ink:#fff5ea; --gold:#b7841f; --gold-soft:#f3e2bd; --ok:#2f7a4b; --ok-soft:#dcefe2;
+  --display:"Shrikhand","Georgia",serif; --body:"Instrument Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1a0f10; --paper:#2a1a1b; --ink:#f7ebe0; --muted:#bfa79c; --line:#47302f;
+  --red:#d6404f; --red-ink:#fff5ea; --gold:#e3b04f; --gold-soft:#4a3820; --ok:#6fcf93; --ok-soft:#1f3a29; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1a0f10; --paper:#2a1a1b; --ink:#f7ebe0; --muted:#bfa79c; --line:#47302f;
+  --red:#d6404f; --red-ink:#fff5ea; --gold:#e3b04f; --gold-soft:#4a3820; --ok:#6fcf93; --ok-soft:#1f3a29; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 72px;
+  background-image:radial-gradient(circle at 20% 0%,color-mix(in srgb,var(--gold) 14%,transparent),transparent 45%)}
+.wrap{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:4px}
+.fam{margin:0;font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--gold);overflow-wrap:anywhere}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(2.1rem,9vw,2.9rem);line-height:1.05;margin:0;color:var(--red);text-wrap:balance;overflow-wrap:anywhere}
+.sub{color:var(--muted);margin:0}
+.slip{background:var(--paper);border-radius:4px;padding:22px 20px 32px;position:relative;
+  box-shadow:0 1px 0 var(--line),0 10px 24px -14px color-mix(in srgb,var(--ink) 40%,transparent);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),96% 100%,90% calc(100% - 6px),82% 100%,74% calc(100% - 7px),66% 100%,58% calc(100% - 6px),50% 100%,42% calc(100% - 7px),34% 100%,26% calc(100% - 6px),18% 100%,10% calc(100% - 7px),4% 100%,0 calc(100% - 8px));
+  display:flex;flex-direction:column;gap:14px}
+h2{font-family:var(--display);font-weight:400;font-size:1.45rem;margin:0;line-height:1.15;text-wrap:balance}
+h3{margin:0;font-size:1rem}
+.lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--muted)}
+.hint{font-size:.9rem;color:var(--muted);margin:0}
+.err{color:var(--red);font-weight:600;font-size:.92rem;margin:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+input[type=text],input[type=password],input[type=number],input[type=date],input[type=url],select{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;font-weight:700;padding:12px 18px;border-radius:10px;background:var(--red);color:var(--red-ink);text-align:center;transition:transform .12s}
+.btn:hover{transform:translateY(-1px)} .btn:active{transform:translateY(1px)}
+.btn:focus-visible,.x:focus-visible,.chipbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{padding:7px 11px;font-size:.88rem}
+.btn.big{padding:16px 22px;font-size:1.05rem;width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.x{all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--muted);flex:none}
+.x:hover{background:var(--line);color:var(--red)}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.list li{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1.5px dashed var(--line);flex-wrap:wrap}
+.list li:last-child{border-bottom:0}
+.list .n{flex:1;min-width:120px;font-weight:600;overflow-wrap:anywhere;display:flex;flex-direction:column}
+.list .n small{font-weight:500;color:var(--muted);font-size:.8rem}
+.pill{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--line);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.you{background:var(--gold-soft);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px 6px 10px;border-radius:999px;border:1.5px dashed var(--line);font-weight:600;font-size:.92rem}
+.chip.joined{border-style:solid}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.chip.joined .dot{background:var(--gold)}
+.chip.online .dot{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.demo{background:var(--gold-soft);border-radius:10px;padding:12px 14px;font-size:.9rem}
+.demo b{display:block}
+.groups{display:flex;flex-direction:column;gap:8px}
+.chipbtn{all:unset;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);font-weight:600}
+.chipbtn small{color:var(--muted);font-weight:500}
+.count{font-family:var(--display);font-size:clamp(5rem,30vw,8rem);line-height:1;color:var(--red);text-align:center;font-variant-numeric:tabular-nums}
+.stage-center{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.slot{width:100%;max-width:360px;border-radius:8px;background:var(--red);color:var(--red-ink);padding:26px 12px;text-align:center;
+  font-family:var(--display);font-size:clamp(2rem,10vw,2.8rem);line-height:1.1;overflow:hidden;overflow-wrap:anywhere;
+  box-shadow:inset 0 0 0 4px var(--gold),inset 0 0 0 7px var(--red),inset 0 0 0 8px color-mix(in srgb,var(--gold) 60%,transparent)}
+.slot.tick{animation:tick .09s ease-out}
+.slot.landed{background:var(--gold-soft);color:var(--red);animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes tick{from{transform:translateY(-6px);opacity:.5}to{transform:none;opacity:1}}
+@keyframes pop{0%{transform:scale(.9)}100%{transform:scale(1)}}
+.meta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:.92rem;color:var(--muted)}
+.meta b{color:var(--ink)}
+.wishes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;width:100%;text-align:left}
+.wishes li{background:var(--bg);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere}
+.wishes a{color:var(--red);font-weight:600;font-size:.9rem}
+.wishrow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+@media (max-width:480px){.wishrow{grid-template-columns:1fr auto}.wishrow input[type=url]{grid-column:1/2}}
+.pairs{display:flex;flex-direction:column;gap:6px}
+.pair{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:6px 6px 6px 12px}
+.pair span{flex:1}
+.confirmbox{border:1.5px solid var(--red);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.mono{font-family:ui-monospace,monospace;font-size:.75rem;color:var(--muted);overflow-wrap:anywhere}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1}
+.loading{color:var(--muted);text-align:center;padding:40px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap" id="app"><p class="loading">Even laden…</p></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== Instelling: plak hier de URL van je Apps Script web-app. Leeg = demomodus in deze browser. ===== */
+const API_URL = '';
+/* ======================================================================================================= */
+const DEMO = !API_URL;
+const FAMILY = 'Familie ten Broeke & ten Voorde';
+const START_NAMES = ['Casper','Marcel','Annemieke','Marlijn','Robin','Fabian','Julia','Sandy','Henkjan'];
+</script>
+<script>
+// Versleuteling in de browser (WebCrypto). De sleutel van elk lootje zit in de persoonlijke link.
+var LTC = (function () {
+  var S = crypto.subtle, te = new TextEncoder(), td = new TextDecoder();
+  function b64(buf) { var a = new Uint8Array(buf), s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function unb64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+  // willekeurige sleutel, veilig in een link (letters, cijfers, - en _)
+  function token(n) { return b64(crypto.getRandomValues(new Uint8Array(n || 16))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  async function hash(s) { return b64(await S.digest('SHA-256', te.encode('lootjes-id:' + s))); }
+  async function key(s) { return S.importKey('raw', await S.digest('SHA-256', te.encode('lootjes-key:' + s)), 'AES-GCM', false, ['encrypt', 'decrypt']); }
+  async function seal(s, obj) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    var ct = await S.encrypt({ name: 'AES-GCM', iv: iv }, await key(s), te.encode(JSON.stringify(obj)));
+    return { i: b64(iv), c: b64(ct) };
+  }
+  async function open(s, b) {
+    return JSON.parse(td.decode(await S.decrypt({ name: 'AES-GCM', iv: unb64(b.i) }, await key(s), unb64(b.c))));
+  }
+  // Wie trekt wie: niemand zichzelf, uitsluitingen in beide richtingen
+  function derange(ids, excl) {
+    var bad = function (a, b) {
+      return a === b || excl.some(function (e) { return (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a); });
+    };
+    for (var t = 0; t < 50000; t++) {
+      var r = ids.slice();
+      for (var i = r.length - 1; i > 0; i--) {
+        var j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+        var x = r[i]; r[i] = r[j]; r[j] = x;
+      }
+      if (ids.every(function (p, k) { return !bad(p, r[k]); })) {
+        var m = {}; ids.forEach(function (p, k) { m[p] = r[k]; }); return m;
+      }
+    }
+    return null;
+  }
+  return { token: token, hash: hash, seal: seal, open: open, derange: derange };
+})();
+
+</script>
+<script>
+// Gedeelde server-logica. Draait in Google Apps Script (Code.gs) én in de demomodus van de site.
+// De server ziet nooit wie wie heeft: lootjes komen versleuteld binnen, met de sleutel uit ieders persoonlijke link.
+// env levert: load, save, uid, now, lock
+function lootjesRoute(req, env) {
+  var A = req.action;
+  var clean = function (s, max) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, max); };
+  var need = function (c, msg) { if (!c) throw new Error(msg); };
+  var blob = function (b, max) { return b && typeof b === 'object' ? { i: String(b.i || '').slice(0, 40), c: String(b.c || '').slice(0, max) } : null; };
+  var pub = function (g, withVault) {
+    var o = {
+      id: g.id, name: g.name, budget: g.budget, date: g.date, state: g.state, drawnAt: g.drawnAt || 0,
+      now: env.now(), excl: g.excl,
+      people: g.people.map(function (p) {
+        return { id: p.id, name: p.name, wish: p.wish || [], opened: !!(p.opens && p.opens.length) };
+      })
+    };
+    if (withVault) o.vault = g.vault;
+    return o;
+  };
+  var checkTok = function (p, th) { need(p.th && p.th === String(th || ''), 'Deze link klopt niet (meer). Vraag de organisator om je nieuwe link.'); };
+
+  if (A === 'create') {
+    var list = (req.people || []).map(function (p) { return { name: clean(p && p.name, 40), th: String(p && p.th || '').slice(0, 100) }; })
+      .filter(function (p) { return p.name && p.th; });
+    need(list.length >= 3, 'Je hebt minimaal 3 deelnemers nodig.');
+    need(list.length <= 60, 'Maximaal 60 deelnemers.');
+    var lower = list.map(function (p) { return p.name.toLowerCase(); });
+    need(lower.filter(function (n, i) { return lower.indexOf(n) === i; }).length === lower.length, 'Er staan dubbele namen in de lijst.');
+    need(req.adminTh && req.ids && req.ids.length === list.length, 'Aanmaken is mislukt. Probeer het opnieuw.');
+    var ng = {
+      id: clean(req.gid, 20) || env.uid(10), name: clean(req.name, 80) || 'Lootjes', budget: Math.max(0, Math.round(+req.budget || 0)),
+      date: clean(req.date, 10), adminTh: String(req.adminTh).slice(0, 100), state: 'open', drawnAt: 0, excl: [], cipher: null,
+      vault: blob(req.vault, 4000),
+      people: list.map(function (p, i) { return { id: clean(req.ids[i], 12), name: p.name, th: p.th, wish: [], opens: [] }; })
+    };
+    need(!env.load(ng.id), 'Probeer het nog een keer.');
+    return env.lock(function () { env.save(ng); return pub(ng, false); });
+  }
+
+  var g0 = env.load(clean(req.gid, 20));
+  need(g0, 'Deze groep bestaat niet (meer). Controleer de link.');
+  var isAdmin = function (g) { need(g.adminTh === String(req.adminTh || ''), 'Deze organisatorlink klopt niet.'); };
+
+  if (A === 'get') return pub(g0, false);
+  if (A === 'adminGet') { isAdmin(g0); return pub(g0, true); }
+  if (A === 'mine') {
+    // je eigen versleutelde lootje ophalen + eerdere openingen (spiek-alarm)
+    var mp = g0.people.filter(function (p) { return p.id === req.pid; })[0];
+    need(mp, 'Deze link hoort bij niemand in de groep.');
+    checkTok(mp, req.th);
+    return { cipher: g0.state === 'drawn' && g0.cipher ? g0.cipher[mp.id] : null, opens: mp.opens || [] };
+  }
+
+  return env.lock(function () {
+    var g = env.load(g0.id);
+    var person = function (id) {
+      var p = g.people.filter(function (x) { return x.id === id; })[0];
+      need(p, 'Deze persoon staat niet (meer) in de groep.');
+      return p;
+    };
+    var open = function () { need(g.state === 'open', 'De lootjes zijn al getrokken. Trek eerst opnieuw als je iets wilt aanpassen.'); };
+    var res = null;
+
+    if (A === 'wish') {
+      var wp = person(req.pid); checkTok(wp, req.th);
+      wp.wish = (req.wish || []).slice(0, 25).map(function (w) {
+        var u = clean(w && w.u, 400);
+        return { t: clean(w && w.t, 140), u: /^https?:\/\//i.test(u) ? u : '' };
+      }).filter(function (w) { return w.t; });
+      res = { wish: wp.wish };
+    } else if (A === 'opened') {
+      var op = person(req.pid); checkTok(op, req.th);
+      need(g.state === 'drawn', 'Er is nog niet getrokken.');
+      var dev = clean(req.dev, 40) || 'onbekend', now = env.now();
+      op.opens = op.opens || [];
+      var hit = op.opens.filter(function (o) { return o.d === dev; })[0];
+      if (hit) hit.l = now; else op.opens.push({ d: dev, f: now, l: now });
+      op.opens = op.opens.slice(-20);
+      res = { opens: op.opens };
+    } else {
+      isAdmin(g);
+      if (A === 'settings') {
+        if (req.name != null) g.name = clean(req.name, 80) || g.name;
+        if (req.budget != null) g.budget = Math.max(0, Math.round(+req.budget || 0));
+        if (req.date != null) g.date = clean(req.date, 10);
+      } else if (A === 'addPerson') {
+        open();
+        var n = clean(req.name, 40);
+        need(n, 'Vul een naam in.');
+        need(!g.people.some(function (p) { return p.name.toLowerCase() === n.toLowerCase(); }), n + ' staat er al tussen.');
+        need(req.pid && req.th && req.vault, 'Toevoegen is mislukt. Probeer het opnieuw.');
+        g.people.push({ id: clean(req.pid, 12), name: n, th: String(req.th).slice(0, 100), wish: [], opens: [] });
+        g.vault = blob(req.vault, 4000);
+      } else if (A === 'removePerson') {
+        open(); person(req.pid);
+        need(g.people.length > 3, 'Er moeten minimaal 3 deelnemers overblijven.');
+        g.people = g.people.filter(function (p) { return p.id !== req.pid; });
+        g.excl = g.excl.filter(function (e) { return e.indexOf(req.pid) < 0; });
+      } else if (A === 'rekey') {
+        open();
+        var rp = person(req.pid);
+        need(req.th && req.vault, 'Nieuwe link maken is mislukt.');
+        rp.th = String(req.th).slice(0, 100); rp.opens = [];
+        g.vault = blob(req.vault, 4000);
+      } else if (A === 'excl') {
+        open();
+        var ids = g.people.map(function (p) { return p.id; });
+        g.excl = (req.excl || []).filter(function (e) {
+          return e && e.length === 2 && e[0] !== e[1] && ids.indexOf(e[0]) >= 0 && ids.indexOf(e[1]) >= 0;
+        }).slice(0, 100);
+      } else if (A === 'draw') {
+        open();
+        var c = req.cipher || {};
+        need(g.people.every(function (p) { return c[p.id] && c[p.id].i && c[p.id].c; }), 'De trekking is niet compleet. Probeer het opnieuw.');
+        g.cipher = {};
+        g.people.forEach(function (p) { g.cipher[p.id] = blob(c[p.id], 300); p.opens = []; });
+        g.state = 'drawn';
+        g.drawnAt = env.now();
+      } else if (A === 'undraw') {
+        g.state = 'open'; g.cipher = null; g.drawnAt = 0;
+        g.people.forEach(function (p) { p.opens = []; });
+      } else {
+        throw new Error('Onbekende actie.');
+      }
+    }
+    env.save(g);
+    return res || pub(g, true);
+  });
+}
+
+</script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
+const fmtDate = d => { if (!d) return 'volgt nog'; try { return new Date(d + 'T12:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) { return d; } };
+const fmtWhen = t => { try { return new Date(t).toLocaleString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+const euro = b => '€ ' + (b || 0);
+const base = () => location.href.split('#')[0];
+async function copyText(t, msg) {
+  try { await navigator.clipboard.writeText(t); toast(msg); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; document.body.append(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {}
+    ta.remove(); toast(ok ? msg : 'Kopiëren lukte niet. Houd de link ingedrukt om hem te kopiëren.');
+  }
+}
+function device() {
+  let d = ls.get('lt:dev', null);
+  if (!d) { d = LTC.token(9); ls.set('lt:dev', d); }
+  return d;
+}
+
+/* ---------- server ---------- */
+const mockEnv = {
+  load: gid => ls.get('lt:mock:' + gid, null),
+  save: g => ls.set('lt:mock:' + g.id, g),
+  uid: n => LTC.token(n).slice(0, n),
+  now: () => Date.now(),
+  lock: f => f()
+};
+async function api(action, data) {
+  const req = Object.assign({ action }, data || {});
+  if (DEMO) {
+    await sleep(150);
+    return JSON.parse(JSON.stringify(lootjesRoute(req, mockEnv)));
+  }
+  let r;
+  try { r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req) }); }
+  catch (e) { throw new Error('Geen verbinding met de server. Controleer je internet en probeer het opnieuw.'); }
+  if (!r.ok) throw new Error('De server gaf een foutmelding (' + r.status + '). Probeer het zo opnieuw.');
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error);
+  return j.data;
+}
+
+function rememberGroup(o) {
+  const all = ls.get('lt:groups', []);
+  const i = all.findIndex(x => x.gid === o.gid);
+  if (i >= 0) all[i] = Object.assign(all[i], Object.fromEntries(Object.entries(o).filter(([, v]) => v != null))); else all.unshift(o);
+  ls.set('lt:groups', all.slice(0, 20));
+}
+
+/* ---------- router ---------- */
+let route = parse(location.hash), timers = [];
+function parse(h) {
+  const p = h.replace(/^#\/?/, '').split('/');
+  if (p[0] === 'g' && p[1] && p[2] && p[3]) return { v: 'person', gid: p[1], pid: p[2], tok: p[3] };
+  if (p[0] === 'a' && p[1] && p[2]) return { v: 'admin', gid: p[1], admin: p[2] };
+  return { v: 'home' };
+}
+function go(hash) {
+  try { location.hash = hash; } catch (e) {}
+  route = parse(hash); show();
+}
+window.addEventListener('hashchange', () => { const r = parse(location.hash); if (JSON.stringify(r) !== JSON.stringify(route)) { route = r; show(); } });
+function stopTimers() { timers.forEach(t => clearInterval(t)); timers = []; }
+function every(ms, fn) { timers.push(setInterval(fn, ms)); }
+function show() {
+  stopTimers(); window.scrollTo(0, 0);
+  ({ home: viewHome, admin: viewAdmin, person: viewPerson })[route.v](route).catch(e => fatal(e.message));
+}
+function fatal(msg) {
+  $('#app').innerHTML = `<header><p class="fam">${esc(FAMILY)}</p><h1>Oeps</h1></header>
+  <section class="slip"><p class="err">${esc(msg)}</p><button class="btn ghost" id="home">Naar het begin</button></section>`;
+  $('#home').onclick = () => go('#/');
+}
+const demoBanner = () => DEMO ? `<div class="demo"><b>Demomodus</b>Alles blijft in deze browser. Met "Open als …" kun je per persoon kijken hoe het eruitziet. Koppel je Google Sheet om echt met de familie te trekken.</div>` : '';
+
+/* ================= HOME ================= */
+async function viewHome() {
+  const groups = ls.get('lt:groups', []);
+  let names = START_NAMES.slice();
+  const app = $('#app');
+  app.innerHTML = `<header><p class="fam">${esc(FAMILY)}</p><h1>Lootjes trekken</h1>
+    <p class="sub">Met verlanglijstjes, zonder wachtwoorden, en niemand weet wie wie heeft. Ook de organisator niet.</p></header>
+    ${demoBanner()}
+    ${groups.length ? `<section class="slip"><h2>Jouw groepen</h2><div class="groups">${groups.map((g, i) => `
+      <button class="chipbtn" data-g="${i}"><span>${esc(g.name)}</span><small>${g.admin ? 'organisator' : esc(g.pname || '')}</small></button>`).join('')}</div></section>` : ''}
+    <section class="slip"><h2>Nieuwe groep</h2>
+      <div class="field"><label class="lbl" for="gname">Naam van de groep</label><input type="text" id="gname" value="${esc(FAMILY)}"></div>
+      <div class="field"><span class="lbl">Deelnemers</span><ul class="list" id="names"></ul>
+        <form class="row" id="addf"><input type="text" id="newname" class="grow" placeholder="Naam toevoegen" autocomplete="off" style="width:auto"><button class="btn small" type="submit">Toevoegen</button></form></div>
+      <div class="two"><div class="field"><label class="lbl" for="budget">Budget per cadeau</label><input type="number" id="budget" min="0" value="15"></div>
+        <div class="field"><label class="lbl" for="date">Pakjesavond (mag leeg)</label><input type="date" id="date" value=""></div></div>
+      <p class="hint">Wie elkaar niet mogen trekken stel je hierna in.</p>
+      <p class="err" id="err" hidden></p>
+      <button class="btn big" id="create">Groep aanmaken</button>
+    </section>`;
+  app.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+    const g = groups[+b.dataset.g]; go(g.admin ? `#/a/${g.gid}/${g.admin}` : `#/g/${g.gid}/${g.pid}/${g.tok}`);
+  });
+  const showErr = m => { const e = $('#err'); e.textContent = m; e.hidden = !m; };
+  const drawNames = () => {
+    $('#names').innerHTML = names.map((n, i) => `<li><span class="n">${esc(n)}</span>${i === 0 ? '<span class="pill you">jij, organisator</span>' : ''}<button class="x" data-del="${i}" aria-label="${esc(n)} verwijderen">✕</button></li>`).join('');
+    $('#names').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { names.splice(+b.dataset.del, 1); drawNames(); });
+  };
+  drawNames();
+  $('#addf').onsubmit = e => {
+    e.preventDefault(); const v = $('#newname').value.trim(); if (!v) return;
+    if (names.some(n => n.toLowerCase() === v.toLowerCase())) { showErr(`${v} staat er al tussen. Voeg een letter toe om ze uit elkaar te houden.`); return; }
+    showErr(''); names.push(v); $('#newname').value = ''; drawNames(); $('#newname').focus();
+  };
+  $('#create').onclick = async () => {
+    const btn = $('#create'); btn.disabled = true; btn.textContent = 'Bezig…'; showErr('');
+    try {
+      const admin = LTC.token(18), gid = LTC.token(8);
+      const ids = names.map(() => LTC.token(6)), toks = names.map(() => LTC.token(16));
+      const people = [];
+      for (let i = 0; i < names.length; i++) people.push({ name: names[i], th: await LTC.hash(toks[i]) });
+      const vault = await LTC.seal(admin, Object.fromEntries(ids.map((id, i) => [id, toks[i]])));
+      const name = $('#gname').value.trim() || 'Lootjes';
+      await api('create', { gid, name, budget: $('#budget').value, date: $('#date').value, people, ids, adminTh: await LTC.hash(admin), vault });
+      rememberGroup({ gid, name, admin, pid: ids[0], pname: names[0], tok: toks[0] });
+      go(`#/a/${gid}/${admin}`);
+    } catch (e) { showErr(e.message); btn.disabled = false; btn.textContent = 'Groep aanmaken'; }
+  };
+}
+
+/* ================= ORGANISATOR ================= */
+async function viewAdmin({ gid, admin }) {
+  const adminTh = await LTC.hash(admin);
+  let g = await api('adminGet', { gid, adminTh });
+  let toks = {};
+  try { toks = await LTC.open(admin, g.vault); } catch (e) { throw new Error('De links van deze groep konden niet worden geopend. Controleer je organisatorlink.'); }
+  const mine = ls.get('lt:groups', []).find(x => x.gid === gid) || {};
+  const myPid = mine.pid && toks[mine.pid] ? mine.pid : null;
+  rememberGroup({ gid, name: g.name, admin, pid: myPid, pname: mine.pname, tok: myPid ? toks[myPid] : null });
+  let confirming = null, busy = false;
+  const link = p => `${base()}#/g/${gid}/${p.id}/${toks[p.id]}`;
+  const app = $('#app');
+  app.innerHTML = `<header><p class="fam" id="gtitle">${esc(g.name)}</p><h1>Organiseren</h1>
+    <p class="sub">Stuur iedereen zijn eigen link. Daarmee zetten ze hun verlanglijstje erin, en zien ze na het trekken wie ze hebben.</p></header>
+    ${demoBanner()}
+    <section class="slip" id="drawpanel"></section>
+    <section class="slip"><h2>Deelnemers</h2><ul class="list" id="people"></ul>
+      <form class="row" id="addf"><input type="text" id="newname" class="grow" placeholder="Naam toevoegen" autocomplete="off" style="width:auto"><button class="btn small" type="submit">Toevoegen</button></form>
+      <p class="err" id="perr" hidden></p></section>
+    <section class="slip"><h2>Mogen elkaar niet trekken</h2><p class="hint">Voor stelletjes, of mensen die elkaar vorig jaar al hadden.</p><div id="excl"></div></section>
+    <section class="slip"><h2>Instellingen</h2>
+      <div class="field"><label class="lbl" for="sname">Naam van de groep</label><input type="text" id="sname" value="${esc(g.name)}"></div>
+      <div class="two"><div class="field"><label class="lbl" for="sbudget">Budget per cadeau</label><input type="number" id="sbudget" min="0" value="${g.budget}"></div>
+      <div class="field"><label class="lbl" for="sdate">Pakjesavond (mag leeg)</label><input type="date" id="sdate" value="${esc(g.date)}"></div></div></section>
+    <section class="slip"><h2>Jouw organisatorlink</h2><p class="hint">Bewaar deze link goed. Hiermee beheer je de groep, ook vanaf een ander apparaat. Deel hem met niemand.</p>
+      <p class="mono">${esc(base())}#/a/${esc(gid)}/${esc(admin)}</p>
+      <div class="row"><button class="btn ghost small" id="copyadmin">Kopieer organisatorlink</button><button class="btn ghost small" id="tohome">Naar het begin</button></div></section>`;
+
+  const perr = m => { const e = $('#perr'); e.textContent = m || ''; e.hidden = !m; };
+  const invite = p => `Hoi ${p.name}! We trekken lootjes voor ${g.name}. Via deze link zet je je verlanglijstje erin, en zie je straks wie jij hebt getrokken: ${link(p)}\nDeze link is alleen voor jou, stuur hem niet door.`;
+  const act = async (action, extra) => {
+    try { g = await api(action, Object.assign({ gid, adminTh }, extra || {})); perr(''); renderAll(); return true; }
+    catch (e) { perr(e.message); toast(e.message); return false; }
+  };
+  const P = id => g.people.find(p => p.id === id);
+
+  function renderPeople() {
+    const open = g.state === 'open';
+    $('#people').innerHTML = g.people.map(p => {
+      const st = open ? '' : p.opened ? '<span class="pill ok">bekeken</span>' : '<span class="pill">nog niet bekeken</span>';
+      return `<li><span class="n">${esc(p.name)}${p.id === myPid ? ' (jij)' : ''}<small>${p.wish.length ? p.wish.length + (p.wish.length === 1 ? ' wens' : ' wensen') : 'nog geen verlanglijstje'}</small></span>${st}
+        <span class="row">${p.id === myPid ? `<button class="btn small" data-mine="${p.id}">Mijn lootje</button>` : `<button class="btn ghost small" data-inv="${p.id}">Kopieer uitnodiging</button>`}
+        ${DEMO && p.id !== myPid ? `<button class="btn ghost small" data-open="${p.id}">Open als ${esc(p.name)}</button>` : ''}
+        ${open ? `<button class="btn ghost small" data-rk="${p.id}" title="Maakt de oude link ongeldig">Nieuwe link</button><button class="x" data-rm="${p.id}" aria-label="${esc(p.name)} verwijderen">✕</button>` : ''}</span></li>`;
+    }).join('');
+    $('#addf').hidden = !open;
+    $('#people').querySelectorAll('[data-inv]').forEach(b => b.onclick = () => copyText(invite(P(b.dataset.inv)), `Uitnodiging voor ${P(b.dataset.inv).name} gekopieerd`));
+    $('#people').querySelectorAll('[data-mine]').forEach(b => b.onclick = () => go(`#/g/${gid}/${b.dataset.mine}/${toks[b.dataset.mine]}`));
+    $('#people').querySelectorAll('[data-open]').forEach(b => b.onclick = () => go(`#/g/${gid}/${b.dataset.open}/${toks[b.dataset.open]}`));
+    $('#people').querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { confirming = { kind: 'rekey', pid: b.dataset.rk }; renderDraw(); $('#drawpanel').scrollIntoView({ behavior: 'smooth' }); });
+    $('#people').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => act('removePerson', { pid: b.dataset.rm }));
+  }
+
+  function renderExcl() {
+    const open = g.state === 'open', N = id => (P(id) || {}).name || '?';
+    const opts = sel => g.people.map((p, i) => `<option value="${p.id}" ${i === sel ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+    $('#excl').innerHTML = `<div class="pairs">${g.excl.map((e, i) => `<div class="pair"><span>${esc(N(e[0]))} ↔ ${esc(N(e[1]))}</span>${open ? `<button class="x" data-ex="${i}" aria-label="Regel verwijderen">✕</button>` : ''}</div>`).join('') || '<p class="hint">Nog geen regels. Iedereen kan iedereen trekken.</p>'}</div>
+      ${open ? `<div class="row" style="margin-top:10px"><select id="ea" class="grow" style="width:auto">${opts(0)}</select><span>↔</span><select id="eb" class="grow" style="width:auto">${opts(1)}</select><button class="btn ghost small" id="addex">Toevoegen</button></div>` : ''}`;
+    $('#excl').querySelectorAll('[data-ex]').forEach(b => b.onclick = () => act('excl', { excl: g.excl.filter((_, i) => i !== +b.dataset.ex) }));
+    if (open) $('#addex').onclick = () => {
+      const a = $('#ea').value, b = $('#eb').value;
+      if (a === b) return toast('Kies twee verschillende mensen.');
+      if (g.excl.some(e => (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a))) return toast('Die regel bestaat al.');
+      act('excl', { excl: g.excl.concat([[a, b]]) });
+    };
+  }
+
+  function renderDraw() {
+    const el = $('#drawpanel'), n = g.people.length;
+    if (confirming && confirming.kind === 'rekey') {
+      const p = P(confirming.pid) || { name: '' };
+      el.innerHTML = `<h2>Nieuwe link voor ${esc(p.name)}?</h2><p class="hint">Doe dit als ${esc(p.name)} de link kwijt is, of als die per ongeluk bij iemand anders terecht is gekomen. De oude link werkt daarna niet meer. Het verlanglijstje blijft bewaard.</p>
+        <div class="row"><button class="btn ghost" id="no">Annuleren</button><button class="btn" id="yes">Nieuwe link maken</button></div>`;
+      $('#no').onclick = () => { confirming = null; renderDraw(); };
+      $('#yes').onclick = async () => {
+        const pid = confirming.pid; confirming = null;
+        const tok = LTC.token(16), next = Object.assign({}, toks, { [pid]: tok });
+        if (await act('rekey', { pid, th: await LTC.hash(tok), vault: await LTC.seal(admin, next) })) {
+          toks = next; if (pid === myPid) rememberGroup({ gid, tok }); renderPeople();
+          copyText(invite(P(pid)), `Nieuwe uitnodiging voor ${P(pid).name} gekopieerd`);
+        }
+      };
+      return;
+    }
+    if (g.state === 'open') {
+      const wl = g.people.filter(p => p.wish.length).length;
+      el.innerHTML = `<h2>Lootjes trekken</h2>
+        <p class="hint"><b>${n} deelnemers</b>, waarvan ${wl} al een verlanglijstje hebben. Je kunt trekken wanneer je wilt. Verlanglijstjes kunnen daarna nog gewoon worden aangevuld.</p>
+        ${confirming && confirming.kind === 'draw' ? `<div class="confirmbox"><b>Lootjes trekken?</b><span class="hint">Daarna kan iedereen via zijn eigen link zijn lootje onthullen. Deelnemers en regels liggen dan vast, tenzij je opnieuw trekt.</span>
+          <div class="row"><button class="btn ghost" id="no">Nog niet</button><button class="btn" id="go">Trek de lootjes</button></div></div>`
+          : `<button class="btn big" id="start" ${busy ? 'disabled' : ''}>${busy ? 'Lootjes versleutelen…' : 'Trek de lootjes'}</button>`}
+        <p class="err" id="derr" hidden></p>`;
+      if ($('#start')) $('#start').onclick = () => { confirming = { kind: 'draw' }; renderDraw(); };
+      if ($('#no')) $('#no').onclick = () => { confirming = null; renderDraw(); };
+      if ($('#go')) $('#go').onclick = startDraw;
+    } else {
+      const seen = g.people.filter(p => p.opened).length;
+      el.innerHTML = `<h2>De lootjes zijn getrokken</h2>
+        <div class="chips">${g.people.map(p => `<span class="chip ${p.opened ? 'joined online' : ''}"><span class="dot"></span>${esc(p.name)}</span>`).join('')}</div>
+        <p class="hint"><b>${seen} van ${n}</b> hebben hun lootje bekeken. Wie wie heeft staat nergens leesbaar, ook niet in jouw Sheet. Open je iemand anders zijn link, dan krijgt diegene een spiek-alarm.</p>
+        ${myPid ? `<button class="btn big" id="mine">Naar mijn eigen lootje</button>` : ''}
+        ${confirming && confirming.kind === 'undraw' ? `<div class="confirmbox"><b>Echt opnieuw trekken?</b><span class="hint">Alle getrokken lootjes vervallen. Daarna kun je deelnemers en regels aanpassen en opnieuw trekken. Iedereen houdt dezelfde link.</span>
+          <div class="row"><button class="btn ghost" id="no">Annuleren</button><button class="btn" id="yes">Ja, opnieuw</button></div></div>`
+          : `<button class="btn ghost small" id="redo">Opnieuw trekken</button>`}`;
+      if ($('#mine')) $('#mine').onclick = () => go(`#/g/${gid}/${myPid}/${toks[myPid]}`);
+      if ($('#redo')) $('#redo').onclick = () => { confirming = { kind: 'undraw' }; renderDraw(); };
+      if ($('#no')) $('#no').onclick = () => { confirming = null; renderDraw(); };
+      if ($('#yes')) $('#yes').onclick = async () => { confirming = null; if (await act('undraw')) toast('Lootjes vervallen. Je kunt opnieuw trekken.'); };
+    }
+  }
+
+  async function startDraw() {
+    confirming = null; busy = true; renderDraw();
+    try {
+      const fresh = await api('adminGet', { gid, adminTh });
+      if (!fresh.people.every(p => toks[p.id])) throw new Error('Van niet iedereen is een link bekend. Maak een nieuwe link voor de ontbrekende persoon.');
+      let map = LTC.derange(fresh.people.map(p => p.id), fresh.excl);
+      if (!map) throw new Error('Met deze regels kan niet iedereen een lootje krijgen. Haal een of meer regels weg.');
+      const cipher = {};
+      for (const p of fresh.people) cipher[p.id] = await LTC.seal(toks[p.id], { r: map[p.id] });
+      map = null; // de uitkomst wordt nergens bewaard of getoond
+      g = await api('draw', { gid, adminTh, cipher });
+      busy = false; renderAll(); toast('De lootjes zijn getrokken');
+    } catch (e) {
+      busy = false; renderDraw(); const d = $('#derr'); if (d) { d.textContent = e.message; d.hidden = false; }
+    }
+  }
+
+  function renderAll() { $('#gtitle').textContent = g.name; renderDraw(); renderPeople(); renderExcl(); }
+  renderAll();
+
+  $('#addf').onsubmit = async e => {
+    e.preventDefault(); const v = $('#newname').value.trim(); if (!v) return;
+    const pid = LTC.token(6), tok = LTC.token(16), next = Object.assign({}, toks, { [pid]: tok });
+    if (await act('addPerson', { name: v, pid, th: await LTC.hash(tok), vault: await LTC.seal(admin, next) })) { toks = next; $('#newname').value = ''; renderPeople(); }
+  };
+  $('#sname').onchange = e => act('settings', { name: e.target.value });
+  $('#sbudget').onchange = e => act('settings', { budget: e.target.value });
+  $('#sdate').onchange = e => act('settings', { date: e.target.value });
+  $('#copyadmin').onclick = () => copyText(`${base()}#/a/${gid}/${admin}`, 'Organisatorlink gekopieerd');
+  $('#tohome').onclick = () => go('#/');
+
+  every(10000, async () => { if (busy || confirming) return; try { g = await api('adminGet', { gid, adminTh }); renderDraw(); renderPeople(); } catch (e) {} });
+}
+
+/* ================= DEELNEMER ================= */
+async function viewPerson({ gid, pid, tok }) {
+  const th = await LTC.hash(tok);
+  let g = await api('get', { gid });
+  const me = g.people.find(p => p.id === pid);
+  if (!me) throw new Error('Deze link hoort bij niemand in de groep. Vraag de organisator om een nieuwe uitnodiging.');
+  let mine = await api('mine', { gid, pid, th });
+  rememberGroup({ gid, name: g.name, pid, pname: me.name, tok });
+  const dev = device();
+  const app = $('#app');
+  app.innerHTML = `<header><p class="fam">${esc(g.name)}</p><h1>Hoi ${esc(me.name)}!</h1></header>${demoBanner()}
+    <div class="meta" id="meta"></div>
+    <section class="slip" id="stage" aria-live="polite"></section>
+    <section class="slip"><h2>Mijn verlanglijstje</h2><p class="hint">Degene die jou trekt ziet dit lijstje. Je kunt het altijd aanpassen, ook na het trekken.</p>
+      <div id="wl" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="row"><button class="btn ghost small" id="addw">Wens toevoegen</button><span class="grow"></span><button class="btn" id="savew">Opslaan</button></div></section>`;
+
+  let recipient = null, stageKey = '', spinning = false;
+  const revKey = () => 'lt:rev:' + gid + ':' + pid + ':' + g.drawnAt;
+  const renderMeta = () => { $('#meta').innerHTML = `<span>Budget <b>${euro(g.budget)}</b></span><span>Pakjesavond <b>${esc(fmtDate(g.date))}</b></span>`; };
+
+  async function decrypt() {
+    if (recipient && recipient.at === g.drawnAt) return recipient;
+    if (!mine.cipher) mine = await api('mine', { gid, pid, th });
+    if (!mine.cipher) throw new Error('Er is geen lootje voor jou gevonden. Laat het de organisator weten.');
+    let rid;
+    try { rid = (await LTC.open(tok, mine.cipher)).r; }
+    catch (e) { throw new Error('Je lootje kan niet worden geopend. Misschien gebruik je een oude link. Vraag de organisator om je nieuwe link.'); }
+    recipient = { at: g.drawnAt, rid };
+    return recipient;
+  }
+  const recName = () => (g.people.find(p => p.id === recipient.rid) || {}).name || 'onbekend';
+
+  function wishHtml() {
+    const r = g.people.find(p => p.id === recipient.rid);
+    if (!r) return '';
+    return `<h3>Verlanglijstje van ${esc(r.name)}</h3>` + (r.wish.length
+      ? `<ul class="wishes">${r.wish.map(w => `<li>${esc(w.t)}${w.u ? `<br><a href="${esc(w.u)}" target="_blank" rel="noopener">Bekijk link</a>` : ''}</li>`).join('')}</ul>`
+      : `<p class="hint">${esc(r.name)} heeft nog niets op het verlanglijstje gezet. Kijk later nog eens via deze link.</p>`);
+  }
+  function alarmHtml(opens) {
+    const others = (opens || []).filter(o => o.d !== dev).sort((a, b) => a.f - b.f);
+    if (!others.length) return '';
+    return `<div class="confirmbox" style="text-align:left;width:100%"><b>Spiek-alarm</b><span class="hint">Je lootje is ook op een ander apparaat geopend, voor het eerst op ${esc(fmtWhen(others[0].f))}. Was jij dat zelf, bijvoorbeeld op een tablet of in een andere browser? Dan is er niets aan de hand. Zo niet, dan heeft iemand gespiekt.</span></div>`;
+  }
+
+  async function renderStage() {
+    const el = $('#stage');
+    stageKey = g.state + ':' + g.drawnAt;
+    if (g.state === 'open') {
+      el.innerHTML = `<h2>Nog even geduld</h2>
+        <p class="hint">De organisator trekt binnenkort de lootjes. Kom later terug via dezelfde link om te zien wie jij hebt. Zet intussen vast je verlanglijstje hieronder.</p>`;
+      return;
+    }
+    try { await decrypt(); } catch (e) { el.innerHTML = `<h2>Dat ging mis</h2><p class="err">${esc(e.message)}</p>`; return; }
+    if (ls.get(revKey(), false)) {
+      renderResult(mine.opens);
+      api('opened', { gid, pid, th, dev }).then(r => { mine.opens = r.opens; const a = $('#alarm'); if (a) a.innerHTML = alarmHtml(r.opens); }).catch(() => {});
+      return;
+    }
+    el.innerHTML = `<div class="stage-center"><h2>Je lootje ligt klaar</h2><p class="hint">Zorg dat niemand meekijkt.</p><button class="btn big" id="rev">Onthul mijn lootje</button></div>`;
+    $('#rev').onclick = async () => {
+      $('#rev').disabled = true;
+      try { const r = await api('opened', { gid, pid, th, dev }); mine.opens = r.opens; } catch (e) {}
+      spin();
+    };
+  }
+  function spin() {
+    if (spinning) return; spinning = true;
+    $('#stage').innerHTML = `<div class="stage-center"><h2>${esc(me.name)}, jij trekt…</h2><div class="slot" id="slot">?</div></div>`;
+    const slot = $('#slot');
+    const pool = g.people.filter(p => p.id !== pid).map(p => p.name).sort(() => Math.random() - .5);
+    const steps = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 26;
+    let i = 0, step = 0, delay = 55;
+    const next = () => {
+      if (step >= steps) {
+        slot.textContent = recName(); slot.classList.remove('tick'); slot.classList.add('landed');
+        ls.set(revKey(), true);
+        setTimeout(() => { spinning = false; renderResult(mine.opens); }, 1300);
+        return;
+      }
+      slot.textContent = pool[(i++) % pool.length];
+      slot.classList.remove('tick'); void slot.offsetWidth; slot.classList.add('tick');
+      step++; delay *= 1.11; setTimeout(next, delay);
+    };
+    next();
+  }
+  function renderResult(opens) {
+    $('#stage').innerHTML = `<div class="stage-center"><span class="lbl">Jij koopt een cadeau voor</span><div class="slot landed">${esc(recName())}</div>
+      <p class="hint">Mondje dicht! Budget ${euro(g.budget)}, pakjesavond ${esc(fmtDate(g.date))}.</p>
+      <div id="alarm" style="width:100%">${alarmHtml(opens)}</div>
+      <div id="rwish" style="display:flex;flex-direction:column;gap:10px;width:100%;text-align:left">${wishHtml()}</div></div>`;
+  }
+
+  /* verlanglijst bewerken */
+  let wishes = (me.wish || []).map(w => ({ t: w.t, u: w.u }));
+  if (!wishes.length) wishes.push({ t: '', u: '' });
+  function renderWishEditor() {
+    $('#wl').innerHTML = wishes.map((w, i) => `<div class="wishrow"><input type="text" id="wt${i}" data-i="${i}" data-f="t" value="${esc(w.t)}" placeholder="Wat wil je graag?" maxlength="140" aria-label="Wens ${i + 1}">
+      <input type="url" id="wu${i}" data-i="${i}" data-f="u" value="${esc(w.u)}" placeholder="Link (mag leeg)" aria-label="Link bij wens ${i + 1}"><button class="x" data-dw="${i}" aria-label="Wens verwijderen">✕</button></div>`).join('');
+    $('#wl').querySelectorAll('input').forEach(inp => inp.oninput = () => { wishes[+inp.dataset.i][inp.dataset.f] = inp.value; });
+    $('#wl').querySelectorAll('[data-dw]').forEach(b => b.onclick = () => { wishes.splice(+b.dataset.dw, 1); if (!wishes.length) wishes.push({ t: '', u: '' }); renderWishEditor(); });
+  }
+  renderWishEditor();
+  $('#addw').onclick = () => { wishes.push({ t: '', u: '' }); renderWishEditor(); $('#wt' + (wishes.length - 1)).focus(); };
+  $('#savew').onclick = async () => {
+    const b = $('#savew'); b.disabled = true;
+    const list = wishes.map(w => ({ t: w.t.trim(), u: w.u.trim() && !/^https?:\/\//i.test(w.u.trim()) ? 'https://' + w.u.trim() : w.u.trim() })).filter(w => w.t);
+    try { const r = await api('wish', { gid, pid, th, wish: list }); toast(r.wish.length ? 'Verlanglijstje opgeslagen' : 'Verlanglijstje is leeg opgeslagen'); }
+    catch (e) { toast(e.message); }
+    b.disabled = false;
+  };
+
+  renderMeta();
+  renderStage();
+  every(15000, async () => {
+    try {
+      g = await api('get', { gid });
+      renderMeta();
+      if (spinning) return;
+      if (g.state + ':' + g.drawnAt !== stageKey) { recipient = null; mine.cipher = null; renderStage(); return; }
+      if ($('#rwish') && recipient) $('#rwish').innerHTML = wishHtml();
+    } catch (e) {}
+  });
+}
+
+show();
+</script>
+
+</body></html>
